@@ -58,7 +58,7 @@ COPY . .
 RUN apt-get update && apt-get install -y --no-install-recommends nginx && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY docker/nginx/nginx.conf /etc/nginx/conf.d/default.conf
-RUN sed -i "s/php-fpm:9000/127.0.0.1:9000/g" /etc/nginx/conf.d/default.conf && nginx -t
+RUN rm -f /etc/nginx/sites-enabled/default && sed -i "s/php-fpm:9000/127.0.0.1:9000/g" /etc/nginx/conf.d/default.conf && nginx -t
 
 COPY docker/php-fpm/php-ini-overrides.ini /usr/local/etc/php/conf.d/99-overrides.ini
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
