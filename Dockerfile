@@ -62,11 +62,13 @@ RUN rm -f /etc/nginx/sites-enabled/default && sed -i "s/php-fpm:9000/127.0.0.1:9
 
 COPY docker/php-fpm/php-ini-overrides.ini /usr/local/etc/php/conf.d/99-overrides.ini
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/startup.sh /usr/local/bin/startup.sh
 COPY --from=assets /app/assets ./assets
 
-RUN chown -R www-data:www-data storage application/cache application/logs || true \
-    && find storage -type d -exec chmod 775 {} + \
-    && find storage -type f -exec chmod 664 {} + \
+RUN chmod +x /usr/local/bin/startup.sh \
+    && mkdir -p /var/www/html/storage/{sessions,logs,cache,uploads,backups} \
+    && chown -R www-data:www-data storage || true \
+    && chmod -R 775 storage || true \
     && mkdir -p /run/php
 
 RUN composer install --no-dev --optimize-autoloader --prefer-dist
@@ -75,4 +77,4 @@ EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -f http://127.0.0.1/ || exit 1
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["/usr/local/bin/startup.sh"]
